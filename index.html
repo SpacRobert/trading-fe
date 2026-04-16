@@ -1,87 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trading Panel</title>
+<meta charset="UTF-8">
+<title>Trading + AI Dashboard</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      background: #111;
-      color: white;
-      padding: 20px;
-    }
+<style>
+body { font-family: Arial; background:#111; color:white; padding:20px; }
 
-    button {
-      width: 100%;
-      padding: 15px;
-      margin: 10px 0;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-    }
+button, input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  font-size: 16px;
+}
 
-    .buy { background: green; color: white; }
-    .sell { background: red; color: white; }
-    .cmd { background: #333; color: white; }
-    .ai { background: #6a00ff; color: white; }
+.buy { background: green; color: white; }
+.sell { background: red; color: white; }
+.ai { background: purple; color: white; }
+.cmd { background: #333; color: white; }
 
-    input {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-  </style>
+#chatBox {
+  display: none;
+  border: 1px solid #444;
+  padding: 10px;
+  height: 300px;
+  overflow-y: auto;
+  margin-top: 10px;
+  background: #000;
+}
+</style>
 </head>
 
 <body>
 
 <h2>📊 Trading + AI Panel</h2>
 
-<input id="cmd" placeholder="TSLA 2.5 / list / ai what to buy">
+<!-- TRADING -->
+<div id="tradePanel">
+<input id="stock" placeholder="TSLA / AAPL / SOFI">
 
-<button class="buy"
-onclick="send('buy ' + document.getElementById('cmd').value)">
+<button class="buy" onclick="sendTrade('buy ' + document.getElementById('stock').value)">
 BUY
 </button>
 
-<button class="sell"
-onclick="send('sell ' + document.getElementById('cmd').value)">
+<button class="sell" onclick="sendTrade('sell ' + document.getElementById('stock').value)">
 SELL
 </button>
 
-<button class="cmd"
-onclick="send(document.getElementById('cmd').value)">
-SEND
-</button>
+<button class="cmd" onclick="sendTrade('list')">LIST</button>
+</div>
 
-<button class="cmd" onclick="send('list')">
-LIST
-</button>
+<hr>
 
-<button class="cmd" onclick="send('help')">
-HELP
-</button>
+<!-- AI CHAT -->
+<button class="ai" onclick="toggleChat()">🤖 AI CHAT</button>
 
-<!-- 🧠 AI BUTTON -->
-<button class="ai"
-onclick="send('ai ' + document.getElementById('cmd').value)">
-AI CHAT
-</button>
+<div id="chatBox"></div>
+
+<input id="chatInput" placeholder="Ask AI..." style="display:none">
+<button class="ai" id="sendChatBtn" style="display:none" onclick="sendChat()">SEND AI</button>
 
 <script>
-const TOPIC = "agent-commands";
 
-function send(msg) {
-  fetch("https://ntfy.sh/" + TOPIC, {
-    method: "POST",
-    body: msg
-  });
+const TRADE_TOPIC = "agent-commands";
+const AI_TOPIC = "ai-chat";
 
-  alert("Sent: " + msg);
+function sendTrade(msg){
+  fetch("https://ntfy.sh/" + TRADE_TOPIC, {method:"POST", body:msg});
+  alert(msg);
 }
+
+function toggleChat(){
+  document.getElementById("chatBox").style.display = "block";
+  document.getElementById("chatInput").style.display = "block";
+  document.getElementById("sendChatBtn").style.display = "block";
+}
+
+function sendChat(){
+  let msg = document.getElementById("chatInput").value;
+  fetch("https://ntfy.sh/" + AI_TOPIC, {method:"POST", body:msg});
+
+  addChat("🧑 You: " + msg);
+  document.getElementById("chatInput").value = "";
+}
+
+// fake UI history (local)
+function addChat(text){
+  let box = document.getElementById("chatBox");
+  box.innerHTML += "<div>" + text + "</div>";
+}
+
 </script>
 
 </body>
