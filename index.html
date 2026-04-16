@@ -25,6 +25,7 @@
     .buy { background: green; color: white; }
     .sell { background: red; color: white; }
     .cmd { background: #333; color: white; }
+    .ai { background: #6a00ff; color: white; }
 
     input {
       width: 100%;
@@ -37,19 +38,38 @@
 
 <body>
 
-<h2>📊 Trading Control Panel</h2>
+<h2>📊 Trading + AI Panel</h2>
 
-<input id="cmd" placeholder="TSLA 2.5 / list / help">
+<input id="cmd" placeholder="TSLA 2.5 / list / ai what to buy">
 
-<button class="buy" onclick="send('buy ' + document.getElementById('cmd').value)">BUY</button>
+<button class="buy"
+onclick="send('buy ' + document.getElementById('cmd').value)">
+BUY
+</button>
 
-<button class="sell" onclick="send('sell ' + document.getElementById('cmd').value)">SELL</button>
+<button class="sell"
+onclick="send('sell ' + document.getElementById('cmd').value)">
+SELL
+</button>
 
-<button class="cmd" onclick="send(document.getElementById('cmd').value)">SEND</button>
+<button class="cmd"
+onclick="send(document.getElementById('cmd').value)">
+SEND
+</button>
 
-<button class="cmd" onclick="send('list')">LIST</button>
+<button class="cmd" onclick="send('list')">
+LIST
+</button>
 
-<button class="cmd" onclick="send('help')">HELP</button>
+<button class="cmd" onclick="send('help')">
+HELP
+</button>
+
+<!-- 🧠 AI BUTTON -->
+<button class="ai"
+onclick="send('ai ' + document.getElementById('cmd').value)">
+AI CHAT
+</button>
 
 <script>
 const TOPIC = "agent-commands";
