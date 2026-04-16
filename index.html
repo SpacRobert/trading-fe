@@ -1,102 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Trading Panel</title>
 
-<title>Trading AI Panel</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #0f0f0f;
+      color: white;
+      touch-action: manipulation;
+    }
 
-<style>
-body {
-  font-family: Arial;
-  background:#111;
-  color:white;
-  padding:15px;
-  font-size:20px;
-}
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-input {
-  width:100%;
-  padding:18px;
-  font-size:20px;
-  margin-bottom:10px;
-}
+    input {
+      width: 100%;
+      padding: 18px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: none;
+      margin-bottom: 15px;
+      outline: none;
+    }
 
-button {
-  width:100%;
-  padding:18px;
-  margin:8px 0;
-  font-size:20px;
-  border:none;
-  border-radius:10px;
-}
+    button {
+      width: 100%;
+      padding: 18px;
+      margin: 8px 0;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+    }
 
-.buy {background:green;color:white;}
-.sell {background:red;color:white;}
-.cmd {background:#333;color:white;}
-.ai {background:purple;color:white;}
+    .buy { background: #1db954; color: black; }
+    .sell { background: #ff3b30; color: white; }
+    .cmd { background: #2c2c2c; color: white; }
 
-#chat {
-  display:none;
-  background:#000;
-  padding:10px;
-  height:300px;
-  overflow:auto;
-  margin-top:10px;
-}
-</style>
+    button:active {
+      transform: scale(0.98);
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>📊 Trading + AI</h2>
+<h2>📊 Trading AI Panel</h2>
 
-<!-- TRADE -->
-<input id="stock" placeholder="TSLA / AAPL / SOFI">
+<input id="cmd" placeholder="TSLA 2.5 / list / help / clear">
 
-<button class="buy" onclick="sendTrade('buy ' + stock.value)">BUY</button>
-<button class="sell" onclick="sendTrade('sell ' + stock.value)">SELL</button>
-<button class="cmd" onclick="sendTrade('list')">LIST</button>
+<button class="buy"
+        onclick="send('buy ' + document.getElementById('cmd').value)">
+  BUY
+</button>
 
-<hr>
+<button class="sell"
+        onclick="send('sell ' + document.getElementById('cmd').value)">
+  SELL
+</button>
 
-<!-- AI -->
-<button class="ai" onclick="openChat()">🤖 AI CHAT</button>
+<button class="cmd"
+        onclick="send(document.getElementById('cmd').value)">
+  SEND
+</button>
 
-<div id="chat"></div>
+<button class="cmd" onclick="send('list')">
+  LIST
+</button>
 
-<input id="msg" style="display:none" placeholder="Ask AI...">
-<button class="ai" id="send" style="display:none" onclick="sendAI()">SEND</button>
+<button class="cmd" onclick="send('help')">
+  HELP
+</button>
+
+<button class="cmd" onclick="send('clear')">
+  CLEAR CHAT
+</button>
 
 <script>
+const TOPIC = "agent-commands";
 
-const TRADE_TOPIC = "agent-commands";
-const AI_TOPIC = "ai-chat";
+function send(msg) {
+  if (!msg || msg.trim() === "") return;
 
-function sendTrade(msg){
-  fetch("https://ntfy.sh/"+TRADE_TOPIC,{method:"POST",body:msg});
+  fetch("https://ntfy.sh/" + TOPIC, {
+    method: "POST",
+    body: msg
+  });
+
+  document.getElementById("cmd").value = "";
 }
-
-function openChat(){
-  document.getElementById("chat").style.display="block";
-  document.getElementById("msg").style.display="block";
-  document.getElementById("send").style.display="block";
-}
-
-function sendAI(){
-  let m = document.getElementById("msg").value;
-  fetch("https://ntfy.sh/"+AI_TOPIC,{method:"POST",body:m});
-
-  add("🧑 "+m);
-  document.getElementById("msg").value="";
-}
-
-function add(t){
-  document.getElementById("chat").innerHTML += "<div>"+t+"</div>";
-}
-
 </script>
 
 </body>
