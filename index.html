@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trading Panel</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: white;
+      padding: 20px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+    }
+
+    .buy { background: green; color: white; }
+    .sell { background: red; color: white; }
+    .cmd { background: #333; color: white; }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>📊 Trading Control Panel</h2>
+
+<input id="cmd" placeholder="TSLA 2.5 / list / help">
+
+<button class="buy" onclick="send('buy ' + document.getElementById('cmd').value)">BUY</button>
+
+<button class="sell" onclick="send('sell ' + document.getElementById('cmd').value)">SELL</button>
+
+<button class="cmd" onclick="send(document.getElementById('cmd').value)">SEND</button>
+
+<button class="cmd" onclick="send('list')">LIST</button>
+
+<button class="cmd" onclick="send('help')">HELP</button>
+
+<script>
+const TOPIC = "agent-commands";
+
+function send(msg) {
+  fetch("https://ntfy.sh/" + TOPIC, {
+    method: "POST",
+    body: msg
+  });
+
+  alert("Sent: " + msg);
+}
+</script>
+
+</body>
+</html>
