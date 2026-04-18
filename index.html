@@ -5,16 +5,15 @@
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <title>Trading Panel</title>
+  <title>Trading AI Panel</title>
 
   <style>
     body {
       margin: 0;
       padding: 20px;
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: #0f0f0f;
       color: white;
-      touch-action: manipulation;
     }
 
     h2 {
@@ -29,7 +28,6 @@
       border-radius: 10px;
       border: none;
       margin-bottom: 15px;
-      outline: none;
     }
 
     button {
@@ -56,47 +54,51 @@
 
 <h2>📊 Trading AI Panel</h2>
 
-<input id="cmd" placeholder="TSLA 2.5 / list / help / clear">
+<input id="cmd" placeholder="TSLA 2.5 / list / help / ask AI">
 
-<button class="buy"
-        onclick="send('buy ' + document.getElementById('cmd').value)">
-  BUY
-</button>
+<button class="buy" onclick="sendTrade('buy ' + val())">BUY</button>
+<button class="sell" onclick="sendTrade('sell ' + val())">SELL</button>
 
-<button class="sell"
-        onclick="send('sell ' + document.getElementById('cmd').value)">
-  SELL
-</button>
+<button class="cmd" onclick="sendTrade(val())">SEND</button>
+<button class="cmd" onclick="sendTrade('list')">LIST</button>
+<button class="cmd" onclick="sendTrade('help')">HELP</button>
 
-<button class="cmd"
-        onclick="send(document.getElementById('cmd').value)">
-  SEND
-</button>
-
-<button class="cmd" onclick="send('list')">
-  LIST
-</button>
-
-<button class="cmd" onclick="send('help')">
-  HELP
-</button>
-
-<button class="cmd" onclick="send('clear')">
-  CLEAR CHAT
-</button>
+<button class="cmd" onclick="sendAI()">🤖 AI CHAT</button>
 
 <script>
-const TOPIC = "agent-commands";
+const TRADE_TOPIC = "agent-commands";
+const AI_TOPIC = "ai-chat";
 
-function send(msg) {
+function val() {
+  return document.getElementById("cmd").value;
+}
+
+function clearInput() {
+  document.getElementById("cmd").value = "";
+}
+
+function sendTrade(msg) {
   if (!msg || msg.trim() === "") return;
 
-  fetch("https://ntfy.sh/" + TOPIC, {
+  fetch("https://ntfy.sh/" + TRADE_TOPIC, {
     method: "POST",
     body: msg
   });
 
-  document.getElementById("cmd").value = "";
+  clearInput();
+}
+
+function sendAI() {
+  const msg = val();
+
+  if (!msg || msg.trim() === "") return;
+
+  fetch("https://ntfy.sh/" + AI_TOPIC, {
+    method: "POST",
+    body: msg
+  });
+
+  clearInput();
 }
 </script>
 
