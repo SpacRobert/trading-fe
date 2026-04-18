@@ -1,213 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
 <title>Trading AI</title>
 
 <style>
-body {
-  margin:0;
-  font-family: Arial;
-  background:#0f0f0f;
-  color:white;
-}
+body {margin:0;background:#0f0f0f;color:white;font-family:Arial}
 
-/* HEADER */
-header {
-  text-align:center;
-  padding:15px;
-  background:#111;
-  font-size:20px;
-  font-weight:bold;
-}
+header {padding:15px;text-align:center;background:#111;font-weight:bold}
 
-/* TABS */
-.tabs {
-  display:flex;
-}
+.tabs {display:flex}
+.tab {flex:1;padding:15px;text-align:center;background:#222;cursor:pointer}
+.tab.active {background:#444}
 
-.tab {
-  flex:1;
-  padding:15px;
-  text-align:center;
-  background:#222;
-  cursor:pointer;
-}
+.section {display:none;padding:15px}
+.section.active {display:block}
 
-.tab.active {
-  background:#444;
-}
+input {width:100%;padding:15px;margin-bottom:10px;border-radius:10px;border:none}
 
-/* CONTENT */
-.section {
-  display:none;
-  padding:15px;
-}
+button {width:100%;padding:15px;margin:5px 0;border-radius:10px;border:none;font-weight:bold}
 
-.section.active {
-  display:block;
-}
+.buy{background:#1db954}
+.sell{background:#ff3b30}
+.cmd{background:#333;color:white}
 
-/* INPUT */
-input {
-  width:100%;
-  padding:15px;
-  font-size:16px;
-  border:none;
-  border-radius:10px;
-  margin-bottom:10px;
-}
+.chat-box{height:300px;overflow:auto;background:#1a1a1a;padding:10px;border-radius:10px}
 
-/* BUTTONS */
-button {
-  width:100%;
-  padding:15px;
-  margin:5px 0;
-  font-size:16px;
-  border:none;
-  border-radius:10px;
-  font-weight:bold;
-}
-
-.buy { background:#1db954; color:black; }
-.sell { background:#ff3b30; color:white; }
-.cmd { background:#333; color:white; }
-
-/* CHAT */
-.chat-box {
-  height:300px;
-  overflow-y:auto;
-  background:#1a1a1a;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:10px;
-}
-
-.msg {
-  margin:5px 0;
-  padding:10px;
-  border-radius:10px;
-}
-
-.user { background:#333; text-align:right; }
-.ai { background:#1db954; color:black; }
-
+.msg{margin:5px;padding:10px;border-radius:10px}
+.user{background:#333;text-align:right}
+.ai{background:#1db954;color:black}
 </style>
 </head>
 
 <body>
 
-<header>📊 Trading AI Panel</header>
+<header>📊 Trading AI</header>
 
 <div class="tabs">
-  <div class="tab active" onclick="show('trade')">Trading</div>
-  <div class="tab" onclick="show('chat')">AI Chat</div>
+<div class="tab active" onclick="show('trade',event)">Trading</div>
+<div class="tab" onclick="show('chat',event)">AI Chat</div>
 </div>
 
-<!-- ================= TRADE ================= -->
 <div id="trade" class="section active">
 
-<input id="tradeInput" placeholder="TSLA 2.5 / list">
+<input id="tradeInput">
 
-<button class="buy" onclick="sendTrade('buy ' + val('tradeInput'))">BUY</button>
-<button class="sell" onclick="sendTrade('sell ' + val('tradeInput'))">SELL</button>
-
+<button class="buy" onclick="sendTrade('buy '+val('tradeInput'))">BUY</button>
+<button class="sell" onclick="sendTrade('sell '+val('tradeInput'))">SELL</button>
 <button class="cmd" onclick="sendTrade(val('tradeInput'))">SEND</button>
 <button class="cmd" onclick="sendTrade('list')">LIST</button>
 
 </div>
 
-<!-- ================= CHAT ================= -->
 <div id="chat" class="section">
 
 <div id="chatBox" class="chat-box"></div>
 
-<input id="chatInput" placeholder="Ask about stocks...">
+<input id="chatInput">
 
-<button class="cmd" onclick="sendAI()">Send</button>
-<button class="cmd" onclick="clearChat()">Clear Chat</button>
-
+<button class="cmd" onclick="sendAI()">SEND</button>
 </div>
 
 <script>
-const TRADE_TOPIC = "agent-commands";
-const AI_TOPIC = "ai-chat";
-const OUTPUT_TOPIC = "investitii-agent";
 
-/* ---------- UI ---------- */
-function show(tab) {
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+const TRADE="agent-commands";
+const AI="ai-chat";
+const OUT="investitii-agent";
 
-  document.getElementById(tab).classList.add('active');
-  event.target.classList.add('active');
+function show(id,e){
+document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'))
+document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'))
+
+document.getElementById(id).classList.add('active')
+e.target.classList.add('active')
 }
 
-function val(id) {
-  return document.getElementById(id).value;
+function val(id){return document.getElementById(id).value}
+
+function sendTrade(msg){
+fetch("https://ntfy.sh/"+TRADE,{method:"POST",body:msg})
+document.getElementById("tradeInput").value=""
 }
 
-function clear(id) {
-  document.getElementById(id).value="";
+function sendAI(){
+let msg=val("chatInput")
+add(msg,"user")
+
+fetch("https://ntfy.sh/"+AI,{method:"POST",body:msg})
+
+document.getElementById("chatInput").value=""
 }
 
-/* ---------- TRADE ---------- */
-function sendTrade(msg) {
-  if (!msg) return;
-
-  fetch("https://ntfy.sh/" + TRADE_TOPIC, {
-    method:"POST",
-    body:msg
-  });
-
-  clear("tradeInput");
+function add(t,type){
+let d=document.createElement("div")
+d.className="msg "+type
+d.innerText=t
+chatBox.appendChild(d)
+chatBox.scrollTop=chatBox.scrollHeight
 }
 
-/* ---------- CHAT ---------- */
-function sendAI() {
-  const msg = val("chatInput");
-  if (!msg) return;
+let chatBox=document.getElementById("chatBox")
 
-  addMsg(msg, "user");
+let s=new EventSource("https://ntfy.sh/"+OUT+"/sse")
 
-  fetch("https://ntfy.sh/" + AI_TOPIC, {
-    method:"POST",
-    body:msg
-  });
-
-  clear("chatInput");
+s.onmessage=(e)=>{
+try{
+let d=JSON.parse(e.data)
+if(d.message)add(d.message,"ai")
+}catch{}
 }
 
-function addMsg(text, type) {
-  const box = document.getElementById("chatBox");
-
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerText = text;
-
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-}
-
-function clearChat() {
-  document.getElementById("chatBox").innerHTML = "";
-}
-
-/* ---------- LISTEN OUTPUT ---------- */
-const evtSource = new EventSource("https://ntfy.sh/" + OUTPUT_TOPIC + "/sse");
-
-evtSource.onmessage = function(e) {
-  try {
-    const data = JSON.parse(e.data);
-
-    if (data.message) {
-      addMsg(data.message, "ai");
-    }
-  } catch {}
-};
 </script>
 
 </body>
