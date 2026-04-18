@@ -10,64 +10,73 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no,
 
 <style>
 
-/* ===== RESET ===== */
-* {
-  box-sizing: border-box;
-}
+/* ===== BASE ===== */
+* { box-sizing: border-box; }
 
 html, body {
   margin:0;
-  padding:0;
-  width:100%;
   height:100%;
-  overflow:hidden; /* 🚫 NO SIDE SCROLL */
+  overflow:hidden;
   background:#0b0b0c;
   font-family:-apple-system, BlinkMacSystemFont;
 }
 
-/* SAFE AREA */
+/* ===== APP ===== */
 .app {
-  height:100dvh; /* 🔥 FIX iOS */
+  height:100dvh;
   display:flex;
   flex-direction:column;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
 }
 
 /* ===== HEADER ===== */
 header {
-  padding:14px;
   text-align:center;
-  font-size:17px;
+  padding:14px;
   font-weight:600;
-  border-bottom:1px solid #1c1c1e;
+  font-size:17px;
+  backdrop-filter: blur(10px);
+  border-bottom:1px solid rgba(255,255,255,0.05);
 }
 
 /* ===== TABS ===== */
 .tabs {
   display:flex;
+  position:relative;
 }
 
 .tab {
   flex:1;
-  padding:12px;
   text-align:center;
+  padding:12px;
   color:#888;
 }
 
 .tab.active {
   color:#1db954;
-  border-bottom:2px solid #1db954;
 }
 
-/* ===== SECTION ===== */
-.section {
-  display:none;
+.indicator {
+  position:absolute;
+  bottom:0;
+  height:2px;
+  width:50%;
+  background:#1db954;
+  transition:0.25s;
+}
+
+/* ===== SECTIONS ===== */
+.wrapper {
   flex:1;
-  overflow:hidden;
+  display:flex;
+  width:200%;
+  transition:0.3s ease;
 }
 
-.section.active {
+.section {
+  width:100%;
+  flex-shrink:0;
   display:flex;
   flex-direction:column;
 }
@@ -99,6 +108,11 @@ header {
   border-radius:14px;
   margin:8px 0;
   font-weight:600;
+  transition:0.15s;
+}
+
+.btn:active {
+  transform:scale(0.96);
 }
 
 .buy { background:#1db954; color:black; }
@@ -115,21 +129,20 @@ header {
   height:100%;
 }
 
-/* CHAT BOX */
 .chat-box {
   flex:1;
   overflow-y:auto;
   padding:10px;
+  -webkit-overflow-scrolling:touch;
 }
 
-/* MESSAGE */
 .msg {
   max-width:75%;
   padding:12px 14px;
   margin:6px 0;
   border-radius:16px;
   font-size:16px;
-  line-height:1.4;
+  animation:fadeIn 0.2s ease;
 }
 
 .user {
@@ -146,28 +159,54 @@ header {
 .chat-input-bar {
   display:flex;
   padding:10px;
-  border-top:1px solid #1c1c1e;
+  border-top:1px solid rgba(255,255,255,0.05);
   background:#0b0b0c;
 }
 
-/* INPUT */
 .chat-input {
   flex:1;
   padding:14px;
-  font-size:16px; /* 🚫 NO ZOOM */
+  font-size:16px;
   border:none;
   border-radius:20px;
   background:#1c1c1e;
   color:white;
 }
 
-/* BUTTON */
 .send-btn {
   margin-left:8px;
   padding:0 16px;
   border:none;
   border-radius:20px;
   background:#1db954;
+}
+
+/* TYPING DOTS */
+.typing {
+  display:flex;
+  gap:4px;
+  padding:10px;
+}
+
+.dot {
+  width:6px;
+  height:6px;
+  background:#aaa;
+  border-radius:50%;
+  animation:blink 1.4s infinite;
+}
+
+.dot:nth-child(2){animation-delay:0.2s}
+.dot:nth-child(3){animation-delay:0.4s}
+
+@keyframes blink {
+  0%,80%,100%{opacity:0}
+  40%{opacity:1}
+}
+
+@keyframes fadeIn {
+  from {opacity:0; transform:translateY(5px);}
+  to {opacity:1; transform:translateY(0);}
 }
 
 </style>
@@ -180,29 +219,38 @@ header {
 <header>📊 Trading AI</header>
 
 <div class="tabs">
-  <div class="tab active" onclick="show('trade',event)">Trading</div>
-  <div class="tab" onclick="show('chat',event)">AI Chat</div>
+  <div class="tab active" onclick="switchTab(0)">Trading</div>
+  <div class="tab" onclick="switchTab(1)">AI Chat</div>
+  <div class="indicator" id="indicator"></div>
 </div>
 
-<!-- ===== TRADE ===== -->
-<div id="trade" class="section active">
+<div class="wrapper" id="wrapper">
+
+<!-- TRADE -->
+<div class="section">
   <div class="trade-box">
 
     <input id="tradeInput" class="trade-input" placeholder="TSLA 1.5">
 
-    <button class="btn buy" onclick="sendTrade('buy '+val('tradeInput'))">BUY</button>
-    <button class="btn sell" onclick="sendTrade('sell '+val('tradeInput'))">SELL</button>
-    <button class="btn cmd" onclick="sendTrade('list')">📊 PORTFOLIO</button>
+    <button class="btn buy" onclick="haptic(); sendTrade('buy '+val('tradeInput'))">BUY</button>
+    <button class="btn sell" onclick="haptic(); sendTrade('sell '+val('tradeInput'))">SELL</button>
+    <button class="btn cmd" onclick="haptic(); sendTrade('list')">📊 PORTFOLIO</button>
 
   </div>
 </div>
 
-<!-- ===== CHAT ===== -->
-<div id="chat" class="section">
+<!-- CHAT -->
+<div class="section">
 
   <div class="chat-container">
 
     <div id="chatBox" class="chat-box"></div>
+
+    <div id="typing" style="display:none" class="typing">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
 
     <div class="chat-input-bar">
       <input id="chatInput" class="chat-input" placeholder="Ask AI...">
@@ -215,27 +263,47 @@ header {
 
 </div>
 
+</div>
+
 <script>
 
 const AI_IN="ai-chat";
 const AI_OUT="ai-responses";
 const TRADE="agent-commands";
 
-/* UI */
-function show(id,e){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'))
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'))
-  document.getElementById(id).classList.add('active')
-  e.target.classList.add('active')
+let wrapper=document.getElementById("wrapper")
+let indicator=document.getElementById("indicator")
+let current=0
+
+function switchTab(i){
+  current=i
+  wrapper.style.transform=`translateX(-${i*50}%)`
+  indicator.style.transform=`translateX(${i*100}%)`
 }
 
-function val(id){
-  return document.getElementById(id).value
+/* SWIPE */
+let startX=0
+
+wrapper.addEventListener("touchstart",e=>{
+  startX=e.touches[0].clientX
+})
+
+wrapper.addEventListener("touchend",e=>{
+  let dx=e.changedTouches[0].clientX-startX
+
+  if(dx>50 && current>0) switchTab(current-1)
+  if(dx<-50 && current<1) switchTab(current+1)
+})
+
+/* HAPTIC */
+function haptic(){
+  if(navigator.vibrate) navigator.vibrate(10)
 }
+
+function val(id){ return document.getElementById(id).value }
 
 /* TRADE */
 function sendTrade(msg){
-  if(!msg) return
   fetch("https://ntfy.sh/"+TRADE,{method:"POST",body:msg})
   document.getElementById("tradeInput").value=""
 }
@@ -246,6 +314,7 @@ function sendAI(){
   if(!msg) return
 
   addMsg(msg,"user")
+  document.getElementById("typing").style.display="flex"
 
   fetch("https://ntfy.sh/"+AI_IN,{method:"POST",body:msg})
 
@@ -254,11 +323,9 @@ function sendAI(){
 
 function addMsg(text,type){
   let box=document.getElementById("chatBox")
-
   let div=document.createElement("div")
   div.className="msg "+type
   div.innerText=text
-
   box.appendChild(div)
   box.scrollTop=box.scrollHeight
 }
@@ -270,6 +337,7 @@ es.onmessage=(e)=>{
   try{
     let data=JSON.parse(e.data)
     if(data.message){
+      document.getElementById("typing").style.display="none"
       addMsg(data.message,"ai")
     }
   }catch{}
